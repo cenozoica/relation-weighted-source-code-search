@@ -18,4 +18,5 @@ for i in range(len(complexityName)):
     axs[i].grid(False)
     axs[i].axis(False)
 
+fig.suptitle(str(fileIndexMax) + ' files', fontsize=20, color='brown')
 plt.show()
