@@ -35,6 +35,7 @@ int main(int argc, const char * argv[]) {
 
     controller.ToFileComplexity("/Users/vadimbaitoiu/Downloads/complexitydata.csv");
     //controller.ToFileTokenSet("/Users/vadimbaitoiu/Downloads/tokenset.txt");
+    controller.ToFileSearchResult("/Users/vadimbaitoiu/Downloads/searchresult.txt");
 
     return 0;
 }

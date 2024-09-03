@@ -10,9 +10,8 @@
 #include "Relation.hpp"
 
 RelationCompressed::RelationCompressed(const RelationNaive& relationNaive, const std::vector<std::string>& tokenList)
+: pos(relationNaive.pos)
 {
-    this->line = relationNaive.line;
-    
     for (const auto& token : relationNaive.tokenList) {
         const auto it = std::lower_bound(tokenList.begin(), tokenList.end(), token); // binary search
         if (it != tokenList.end()) {

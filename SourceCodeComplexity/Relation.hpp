@@ -14,17 +14,18 @@
 
 // sequence of tokens as strings
 struct RelationNaive {
-    unsigned short int line;
+    int pos;
     std::vector<std::string> tokenList;
+    RelationNaive() : pos(-1) {}
 };
 
 // sequence of tokens as iterators
 struct RelationCompressed {
-    unsigned short int line;
+    int pos;
     std::vector<unsigned int> tokenList;
     RelationCompressed(const RelationNaive& relationNaive, const std::vector<std::string>& tokenList);
     void UpdateIndex(const std::vector<std::string>& tokenSetGlobal, const std::vector<std::string>& tokenListFile);
-    bool Has(const unsigned int q) const;
+    bool Has(const unsigned int q) const; // TODO has it how many times? this matters for the weight
 };
 
 #endif /* Relation_hpp */

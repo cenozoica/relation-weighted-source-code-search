@@ -192,7 +192,7 @@ void ParserBase::UpdateState(const char input)
                             break;
 
                         default:
-                            // update token relation
+                            // update token
                             if (std::isalnum(input) || '_' == input) {
                                 this->token += input;
                             }
@@ -256,10 +256,14 @@ void ParserBase::CloseToken()
             this->token = NUMBER_LITERAL;
         }*/
         
+        if (this->relation.pos < 0) {
+            this->relation.pos = static_cast<int>(this->lineStartPos);
+        }
+        
         // push
         this->relation.tokenList.push_back(this->token);
         this->token.clear();
-        this->token.reserve(std::max(TOKEN_RESERVE_SIZE, static_cast<size_t>(1.25f * tokenLen)));
+        this->token.reserve(std::max(TOKEN_RESERVE_SIZE, static_cast<size_t>(1.5f * tokenLen)));
     }
 }
 
@@ -268,6 +272,7 @@ void ParserBase::CloseRelation()
     this->CloseToken();
     if (!this->relation.tokenList.empty()) {
         this->fileHighLevelRep->CloseRelation(this->relation);
+        this->relation.pos = -1;
         this->relation.tokenList.clear();
     }
 }

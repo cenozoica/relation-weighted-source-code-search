@@ -67,20 +67,24 @@ void FileDescriptor::Analyze()
         // read line by line
         std::ifstream fileHandle(this->path.c_str(), std::ios::in);
         if (fileHandle.is_open()) {
-            std::string line;
-            while (std::getline(fileHandle, line)) {
-                if (line.length() > 0) {
-                    parser->fileHighLevelRep->IncrementLineCount();
+            while (true) {
+                parser->SetLineStartPos(fileHandle.tellg()); // stream position to locate later the relation
+                std::string line;
+                if (std::getline(fileHandle, line)) {
+                    if (line.length() > 0) {
+                        parser->fileHighLevelRep->IncrementLineCount();
+                    }
+                    
+                    for (const auto& c : line) {
+                        parser->UpdateState(c);
+                        
+                        //this->simpleDebugOutput << parser->GetState();
+                    }
+                    parser->UpdateState('\0'); // signal eol
                 }
-                                    
-                for (const auto& c : line) {
-                    parser->UpdateState(c);
-
-                    //this->simpleDebugOutput << parser->GetState();
+                else {
+                    break;
                 }
-                //this->simpleDebugOutput.Newline();
-
-                parser->UpdateState(static_cast<char>(0)); // signal newline
             }
         }
         
@@ -111,14 +115,24 @@ void FileDescriptor::UpdateIndex(const std::vector<std::string>& tokenListGlobal
     }
 }
 
+std::tuple<int, int, int> FileDescriptor::GetComplexity() const
+{
+    if (nullptr != this-> fileHighLevelRep) {
+        return {this->fileHighLevelRep->GetLineCount(), this->fileHighLevelRep->GetCommentEnergy(), this->fileHighLevelRep->GetRelationEnergy()};
+    }
+    else {
+        return {0, 0, 0};
+    }
+}
+
 void FileDescriptor::Search(const unsigned int q, const float weight)
 {
     if (nullptr != this->fileHighLevelRep) {
         this->fileHighLevelRep->Search(q, this->searchResult);
-    }
-    
-    // calculate search result energy
-    for (auto& relationCompressed : this->searchResult) {
-        this->searchResultEnergy += weight * static_cast<float>(relationCompressed.tokenList.size());
+        
+        // calculate search result energy
+        for (auto& relationCompressed : this->searchResult) {
+            this->searchResultEnergy += weight * static_cast<float>(relationCompressed.tokenList.size());
+        }
     }
 }

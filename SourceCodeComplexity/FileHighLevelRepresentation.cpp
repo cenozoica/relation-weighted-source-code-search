@@ -66,7 +66,6 @@ void FileHighLevelRepresentation::UpdateIndex(const std::vector<std::string>& to
 
 void FileHighLevelRepresentation::CloseRelation(RelationNaive& relationNaive)
 {
-    relationNaive.line = this->lineCount;
     this->relationNaiveList->push_back(relationNaive);
 }
 

@@ -25,6 +25,7 @@ private:
     bool IsFileExtensionAllowed() const; // not used now
 public:
     FileDescriptor(const std::filesystem::path& path);
+    const std::filesystem::path& GetPath() const { return this->path; }
     void Analyze();
     bool IsAnalyzed() const { return this->analyzed; }
     void SetAnalyzed() { this->analyzed = true; }
@@ -33,17 +34,13 @@ public:
     void UpdateIndex(const std::vector<std::string>& tokenListGlobal);
 
     // complexity getters
-    int GetLineCount() const { return (nullptr == this-> fileHighLevelRep) ? 0 : this->fileHighLevelRep->GetLineCount(); }
-    int GetMaxDepth() const { return (nullptr == this-> fileHighLevelRep) ? 0 : this->fileHighLevelRep->GetMaxDepth(); }
-    int GetCommentEnergy() const { return (nullptr == this-> fileHighLevelRep) ? 0 : this->fileHighLevelRep->GetCommentEnergy(); }
-    float GetSearchResultEnergy() const { return this->searchResultEnergy; }
-    size_t GetRelationCount() const { return (nullptr == this-> fileHighLevelRep) ? 0 : this->fileHighLevelRep->GetRelationCount(); }
-    size_t GetRelationEnergy() const { return (nullptr == this-> fileHighLevelRep) ? 0 : this->fileHighLevelRep->GetRelationEnergy(); }
+    std::tuple<int, int, int> GetComplexity() const;
     
     // search methods
     void ResetSearchResult() { this->searchResult.clear(); this->searchResultEnergy = 0.0f; }
     void Search(const unsigned int q, const float weight = 1.0f);
-    std::vector<RelationCompressed>& GetSerchResult() { return this->searchResult; }
+    const std::vector<RelationCompressed>& GetSearchResult() const { return this->searchResult; }
+    float GetSearchResultEnergy() const { return this->searchResultEnergy; }
 };
 
 #endif /* FileDescriptor_hpp */
