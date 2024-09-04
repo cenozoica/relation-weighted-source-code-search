@@ -24,24 +24,23 @@ private:
     
     // tokens and relations
     std::unique_ptr<const std::vector<std::string>> tokenList;
-    std::unique_ptr<std::vector<RelationNaive>> relationNaiveList;
-    std::unique_ptr<std::vector<RelationCompressed>> relationCompressedList;
+    std::unique_ptr<std::vector<Relation>> relationList;
 public:
     FileHighLevelRepresentation();
     FileHighLevelRepresentation(const FileHighLevelRepresentation& other) {}
     
     // parse methods
-    void CloseRelation(RelationNaive& relationNaive);
+    void CloseRelation(const Relation& relation);
     void PreAnalyze();
     void PostAnalyze();
     void ToGlobalTokenSet(std::set<std::string>& tokenSetGlobal);
-    void UpdateIndex(const std::vector<std::string>& tokenListGlobal);
+    void Index(const std::vector<std::string>& tokenListGlobal);
 
     // complexity getters
     int GetLineCount() const { return this->lineCount; }
     int GetMaxDepth() const { return this->maxDepth; }
     int GetCommentEnergy() const { return this->commentEnergy; }
-    size_t GetRelationCount() const { return this->relationCompressedList->size(); }
+    size_t GetRelationCount() const { return this->relationList->size(); }
     size_t GetRelationEnergy() const;
 
     // complexity setters
@@ -49,7 +48,7 @@ public:
     void IncrementCommentEnergy() { this->commentEnergy++; }
     void IncrementLineCount() { this->lineCount++; }
 
-    void Search(const unsigned int q, std::vector<RelationCompressed>& searchResult);
+    void Search(const unsigned int q, std::vector<Relation>& searchResult);
     
     static void Test();
 };

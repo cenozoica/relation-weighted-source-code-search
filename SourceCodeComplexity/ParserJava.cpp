@@ -7,7 +7,7 @@
 
 #include "ParserJava.hpp"
 
-ParserJava::ParserJava() : ParserBase()
+ParserJava::ParserJava(FileHighLevelRepresentation& fileHighLevelRep) : ParserBase(fileHighLevelRep)
 {
 }
 

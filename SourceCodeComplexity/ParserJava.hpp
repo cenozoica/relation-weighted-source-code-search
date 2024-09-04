@@ -18,7 +18,7 @@ protected:
     void UpdateStateStringLiteral(const char input) override;
     void UpdateStateTextBlock(const char input) override;
 public:
-    ParserJava();
+    ParserJava(FileHighLevelRepresentation& fileHighLevelRep);
 };
 
 #endif /* ParserJava_hpp */

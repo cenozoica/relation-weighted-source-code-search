@@ -18,7 +18,7 @@ private:
     const std::filesystem::path& path;
     bool analyzed;
     std::unique_ptr<FileHighLevelRepresentation> fileHighLevelRep;
-    std::vector<RelationCompressed> searchResult;
+    std::vector<Relation> searchResult;
     float searchResultEnergy;
 
     std::unique_ptr<ParserBase> CreateParser();
@@ -31,7 +31,7 @@ public:
     void SetAnalyzed() { this->analyzed = true; }
     void ResetAnalyzed() { this->analyzed = false; }
     void ToGlobalTokenSet(std::set<std::string>& tokenSet);
-    void UpdateIndex(const std::vector<std::string>& tokenListGlobal);
+    void Index(const std::vector<std::string>& tokenListGlobal);
 
     // complexity getters
     std::tuple<int, int, int> GetComplexity() const;
@@ -39,7 +39,7 @@ public:
     // search methods
     void ResetSearchResult() { this->searchResult.clear(); this->searchResultEnergy = 0.0f; }
     void Search(const unsigned int q, const float weight = 1.0f);
-    const std::vector<RelationCompressed>& GetSearchResult() const { return this->searchResult; }
+    const std::vector<Relation>& GetSearchResult() const { return this->searchResult; }
     float GetSearchResultEnergy() const { return this->searchResultEnergy; }
 };
 

@@ -92,7 +92,7 @@ void Controller::CreateUniqueTokenList()
                 if (!fd.IsAnalyzed()) {
                     fd.SetAnalyzed(); // for other threads this file is as analyzed
                     fileAnalyzedMutex.unlock();
-                    fd.UpdateIndex(*tokenListTemp);
+                    fd.Index(*tokenListTemp);
                 }
                 else {
                     fileAnalyzedMutex.unlock();
@@ -148,6 +148,7 @@ void Controller::Search(const std::string& q)
     }
     
     // search as substring
+    // TODO parallel
     for (unsigned int i = 0; i < this->tokenList->size(); ++i) {
         const auto& str = (*this->tokenList)[i];
         if (!str.empty()) {
@@ -158,6 +159,8 @@ void Controller::Search(const std::string& q)
             }
         }
     }
+    
+    // TODO Search also q[0] capitalized but weight = 0.5
     
     for (auto& fd : this->fileDescriptorList) {
         fd.ResetAnalyzed();

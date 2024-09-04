@@ -9,27 +9,30 @@
 
 #include "Relation.hpp"
 
-RelationCompressed::RelationCompressed(const RelationNaive& relationNaive, const std::vector<std::string>& tokenList)
-: pos(relationNaive.pos)
+void Relation::Index(const std::vector<std::string>& tokenListFile)
 {
-    for (const auto& token : relationNaive.tokenList) {
-        const auto it = std::lower_bound(tokenList.begin(), tokenList.end(), token); // binary search
-        if (it != tokenList.end()) {
-            this->tokenList.push_back(static_cast<unsigned int>(std::distance(tokenList.begin(), it)));
+    const std::vector<std::string>& tl = std::get<std::vector<std::string>>(this->tokenList);
+    std::vector<unsigned int> tokenListNew;
+    for (const auto& token : tl) {
+        const auto it = std::lower_bound(tokenListFile.begin(), tokenListFile.end(), token); // binary search
+        if (it != tokenListFile.end()) {
+            tokenListNew.push_back(static_cast<unsigned int>(std::distance(tokenListFile.begin(), it)));
         }
         else {
             std::cerr << "Could not find\t" << token << std::endl;
         }
     }
+    this->tokenList = tokenListNew;
 }
 
-void RelationCompressed::UpdateIndex(const std::vector<std::string>& tokenSetGlobal, const std::vector<std::string>& tokenListFile)
+void Relation::Index(const std::vector<std::string>& tokenListGlobal, const std::vector<std::string>& tokenListFile)
 {
-    for (size_t i = 0; i < this->tokenList.size(); ++i) {
-        const std::string& q = tokenListFile[this->tokenList[i]];
-        const auto it = std::lower_bound(tokenSetGlobal.begin(), tokenSetGlobal.end(), q); // binary search
-        if (it != tokenSetGlobal.end()) {
-            this->tokenList[i] = static_cast<unsigned int>(std::distance(tokenSetGlobal.begin(), it));
+    std::vector<unsigned int>& tl = std::get<std::vector<unsigned int>>(this->tokenList);
+    for (size_t i = 0; i < tl.size(); ++i) {
+        const std::string& q = tokenListFile[tl[i]];
+        const auto it = std::lower_bound(tokenListGlobal.begin(), tokenListGlobal.end(), q); // binary search
+        if (it != tokenListGlobal.end()) {
+            tl[i] = static_cast<unsigned int>(std::distance(tokenListGlobal.begin(), it));
         }
         else {
             std::cerr << "Could not find:\t"<< q << std::endl;
@@ -37,7 +40,8 @@ void RelationCompressed::UpdateIndex(const std::vector<std::string>& tokenSetGlo
     }
 }
 
-bool RelationCompressed::Has(const unsigned int q) const
+bool Relation::Has(const unsigned int q) const
 {
-    return std::find(this->tokenList.begin(), this->tokenList.end(), q) != this->tokenList.end();
+    const std::vector<unsigned int>& tl = std::get<std::vector<unsigned int>>(this->tokenList);
+    return std::find(tl.begin(), tl.end(), q) != tl.end();
 }

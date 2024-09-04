@@ -13,24 +13,25 @@
 
 FileHighLevelRepresentation::FileHighLevelRepresentation() :
 lineCount(0), maxDepth(0), commentEnergy(0),
-tokenList(nullptr), relationNaiveList(nullptr), relationCompressedList(nullptr)
+tokenList(nullptr), relationList(nullptr)
 {
 }
 
 void FileHighLevelRepresentation::PreAnalyze()
 {
-    this->relationNaiveList = std::make_unique<std::vector<RelationNaive>>();
+    this->relationList = std::make_unique<std::vector<Relation>>();
 }
 
 void FileHighLevelRepresentation::PostAnalyze()
 {
     // analyze cannot create compressed relations because the set of tokens is not available
     
-    if (nullptr != this->relationNaiveList) {
+    if (nullptr != this->relationList) {
         // create set of tokens
         std::unique_ptr<std::set<std::string>> tokenSetTemp = std::make_unique<std::set<std::string>>();
-        for (auto& rel : *this->relationNaiveList) {
-            tokenSetTemp->insert(rel.tokenList.begin(), rel.tokenList.end());
+        for (const auto& rel : *this->relationList) {
+            const std::vector<std::string>& tl = std::get<std::vector<std::string>>(rel.tokenList);
+            tokenSetTemp->insert(tl.begin(), tl.end());
         }
 
         // from set to vector
@@ -38,14 +39,11 @@ void FileHighLevelRepresentation::PostAnalyze()
         // transfer ownership to const
         this->tokenList = std::move(tokenListTemp);
         
-        // create compressed relations
-        this->relationCompressedList = std::make_unique<std::vector<RelationCompressed>>();
-        for (const auto& relationNaive : *this->relationNaiveList) {
-            this->relationCompressedList->push_back(RelationCompressed(relationNaive, *this->tokenList));
+        // compress relations
+        this->relationList = std::make_unique<std::vector<Relation>>();
+        for (auto& relation : *this->relationList) {
+            relation.Index(*this->tokenList);
         }
-
-        // loose naive relations
-        this->relationNaiveList = nullptr;
     }
 }
 
@@ -54,40 +52,40 @@ void FileHighLevelRepresentation::ToGlobalTokenSet(std::set<std::string>& tokenS
     tokenSetGlobal.insert(this->tokenList->begin(), this->tokenList->end());
 }
 
-void FileHighLevelRepresentation::UpdateIndex(const std::vector<std::string>& tokenListGlobal)
+void FileHighLevelRepresentation::Index(const std::vector<std::string>& tokenListGlobal)
 {
-    for (auto& relationCompressed : *this->relationCompressedList) {
-        relationCompressed.UpdateIndex(tokenListGlobal, *this->tokenList);
+    for (auto& relation : *this->relationList) {
+        relation.Index(tokenListGlobal, *this->tokenList);
     }
     
     // loose token list
     this->tokenList = nullptr;
 }
 
-void FileHighLevelRepresentation::CloseRelation(RelationNaive& relationNaive)
+void FileHighLevelRepresentation::CloseRelation(const Relation& relation)
 {
-    this->relationNaiveList->push_back(relationNaive);
+    this->relationList->push_back(relation);
 }
 
 size_t FileHighLevelRepresentation::GetRelationEnergy() const
 {
     size_t result = 0;
     
-    if (nullptr != this->relationCompressedList) {
-        for (const auto& relationCompressed : *this->relationCompressedList) {
-            result += relationCompressed.tokenList.size();
+    if (nullptr != this->relationList) {
+        for (const auto& relation : *this->relationList) {
+            result += std::get<std::vector<unsigned int>>(relation.tokenList).size();
         }
     }
     
     return result;
 }
 
-void FileHighLevelRepresentation::Search(const unsigned int q, std::vector<RelationCompressed>& searchResult)
+void FileHighLevelRepresentation::Search(const unsigned int q, std::vector<Relation>& searchResult)
 {
-    if (nullptr != this->relationCompressedList) {
-        for (const auto& relationCompressed : *this->relationCompressedList) {
-            if (relationCompressed.Has(q)) {
-                searchResult.push_back(relationCompressed);
+    if (nullptr != this->relationList) {
+        for (const auto& relation : *this->relationList) {
+            if (relation.Has(q)) {
+                searchResult.push_back(relation);
             }
         }
     }

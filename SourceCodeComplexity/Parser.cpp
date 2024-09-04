@@ -12,8 +12,8 @@
 static const size_t TOKEN_RESERVE_SIZE = 5;
 static const std::string NUMBER_LITERAL = "__NUMBER_LITERAL";
 
-ParserBase::ParserBase()
-: state(State::CODE), substateIndex(0), stateConsistency(true), fileHighLevelRep(nullptr)
+ParserBase::ParserBase(FileHighLevelRepresentation& fileHighLevelRep)
+: state(State::CODE), substateIndex(0), stateConsistency(true), fileHighLevelRep(fileHighLevelRep)
 {
     this->token.reserve(TOKEN_RESERVE_SIZE);
 }
@@ -83,6 +83,7 @@ void ParserBase::UpdateState(const char input)
                         case '\n':
                         case '\0':
                             this->Transition(State::CODE);
+                            this->fileHighLevelRep.IncrementLineCount();
                             break;
                             
                         default:
@@ -176,7 +177,7 @@ void ParserBase::UpdateState(const char input)
                         case '(':
                         case '[':
                             this->fhlrDepth++;
-                            this->fileHighLevelRep->SetMaxDepth(this->fhlrDepth);
+                            this->fileHighLevelRep.SetMaxDepth(this->fhlrDepth);
                             this->CloseRelation();
                             break;
                             
@@ -211,7 +212,7 @@ void ParserBase::UpdateState(const char input)
         // update comment energy
         case State::COMMENT:
             if (std::isalnum(input)) {
-                this->fileHighLevelRep->IncrementCommentEnergy();
+                this->fileHighLevelRep.IncrementCommentEnergy();
             }
             break;
             
@@ -256,12 +257,13 @@ void ParserBase::CloseToken()
             this->token = NUMBER_LITERAL;
         }*/
         
-        if (this->relation.pos < 0) {
+        if (Relation::POS_UNINIT == this->relation.pos) {
             this->relation.pos = static_cast<int>(this->lineStartPos);
         }
         
         // push
-        this->relation.tokenList.push_back(this->token);
+        std::vector<std::string>& tl = std::get<std::vector<std::string>>(this->relation.tokenList);
+        tl.push_back(this->token);
         this->token.clear();
         this->token.reserve(std::max(TOKEN_RESERVE_SIZE, static_cast<size_t>(1.5f * tokenLen)));
     }
@@ -270,9 +272,10 @@ void ParserBase::CloseToken()
 void ParserBase::CloseRelation()
 {
     this->CloseToken();
-    if (!this->relation.tokenList.empty()) {
-        this->fileHighLevelRep->CloseRelation(this->relation);
-        this->relation.pos = -1;
-        this->relation.tokenList.clear();
+    std::vector<std::string>& tl = std::get<std::vector<std::string>>(this->relation.tokenList);
+    if (!tl.empty()) {
+        this->fileHighLevelRep.CloseRelation(this->relation);
+        this->relation.pos = Relation::POS_UNINIT;
+        tl.clear();
     }
 }

@@ -27,8 +27,9 @@ protected:
     int substateIndex;
     bool stateConsistency;
     int fhlrDepth;
+    FileHighLevelRepresentation& fileHighLevelRep;
     std::string token;
-    RelationNaive relation;
+    Relation relation;
     long long lineStartPos;
     
     void Transition(const State state, const int substateIndex = 0);
@@ -38,8 +39,7 @@ protected:
     void CloseRelation();
 public:
     static const size_t TOKEN_RELATION_SIZE_MAX = 10;
-    std::unique_ptr<FileHighLevelRepresentation> fileHighLevelRep; // yes
-    ParserBase();
+    ParserBase(FileHighLevelRepresentation& fileHighLevelRep);
     virtual ~ParserBase() {}
     State GetState() const { return this->state; }
     int GetFHLRDepth() const { return this->fhlrDepth; }

@@ -40,10 +40,12 @@ std::unique_ptr<ParserBase> FileDescriptor::CreateParser()
     // not using RTTI or a map of file extension string -> parser classes/objects
     const std::string& s = this->path.extension();
     if (".h" == s || ".hpp" == s || ".c" == s || ".cpp" == s) {
-        result = std::make_unique<ParserCC>();
+        this->fileHighLevelRep = std::make_unique<FileHighLevelRepresentation>();
+        result = std::make_unique<ParserCC>(*this->fileHighLevelRep);
     }
     else if (".java" == s) {
-        result = std::make_unique<ParserJava>();
+        this->fileHighLevelRep = std::make_unique<FileHighLevelRepresentation>();
+        result = std::make_unique<ParserJava>(*this->fileHighLevelRep);
     }
     else {
         // ignored file
@@ -58,11 +60,7 @@ void FileDescriptor::Analyze()
     std::unique_ptr<ParserBase> parser = this->CreateParser();
 
     if (nullptr != parser) {
-        this->fileHighLevelRep = std::make_unique<FileHighLevelRepresentation>();
         this->fileHighLevelRep->PreAnalyze();
-        
-        // transfer ownership of file high rep to parser
-        parser->fileHighLevelRep = std::move(this->fileHighLevelRep);
         
         // read line by line
         std::ifstream fileHandle(this->path.c_str(), std::ios::in);
@@ -71,10 +69,6 @@ void FileDescriptor::Analyze()
                 parser->SetLineStartPos(fileHandle.tellg()); // stream position to locate later the relation
                 std::string line;
                 if (std::getline(fileHandle, line)) {
-                    if (line.length() > 0) {
-                        parser->fileHighLevelRep->IncrementLineCount();
-                    }
-                    
                     for (const auto& c : line) {
                         parser->UpdateState(c);
                         
@@ -90,9 +84,6 @@ void FileDescriptor::Analyze()
         
         // check parse result
         if (parser->Check()) {
-            // transfer ownership back
-            this->fileHighLevelRep = std::move(parser->fileHighLevelRep);
-            
             this->fileHighLevelRep->PostAnalyze();
         }
         else {
@@ -108,10 +99,10 @@ void FileDescriptor::ToGlobalTokenSet(std::set<std::string>& tokenSet)
     }
 }
 
-void FileDescriptor::UpdateIndex(const std::vector<std::string>& tokenListGlobal)
+void FileDescriptor::Index(const std::vector<std::string>& tokenListGlobal)
 {
     if (nullptr != this->fileHighLevelRep) {
-        this->fileHighLevelRep->UpdateIndex(tokenListGlobal);
+        this->fileHighLevelRep->Index(tokenListGlobal);
     }
 }
 
@@ -131,8 +122,9 @@ void FileDescriptor::Search(const unsigned int q, const float weight)
         this->fileHighLevelRep->Search(q, this->searchResult);
         
         // calculate search result energy
-        for (auto& relationCompressed : this->searchResult) {
-            this->searchResultEnergy += weight * static_cast<float>(relationCompressed.tokenList.size());
+        for (const auto& relation : this->searchResult) {
+            const std::vector<unsigned int>& tl = std::get<std::vector<unsigned int>>(relation.tokenList);
+            this->searchResultEnergy += weight * tl.size();
         }
     }
 }

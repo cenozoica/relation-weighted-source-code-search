@@ -16,7 +16,7 @@ class ParserCC : public ParserBase
 protected:
     void UpdateStateTextBlock(const char input) override {};
 public:
-    ParserCC() : ParserBase() {}
+    ParserCC(FileHighLevelRepresentation& fileHighLevelRep) : ParserBase(fileHighLevelRep) {}
 };
 
 #endif /* ParserCC_hpp */
