@@ -257,6 +257,7 @@ void ParserBase::CloseToken()
         
         if (Relation::POS_UNINIT == this->relation.pos) {
             this->relation.pos = static_cast<int>(this->lineStartPos);
+            this->relation.lineCount++;
         }
         
         // push
@@ -272,7 +273,14 @@ void ParserBase::CloseRelation()
     std::vector<std::string>& tl = std::get<std::vector<std::string>>(this->relation.tokenList);
     if (!tl.empty()) {
         this->fileHighLevelRep.CloseRelation(this->relation);
-        this->relation.pos = Relation::POS_UNINIT;
+        this->relation.Reset();
         tl.clear();
+    }
+}
+
+void ParserBase::IncrementLineCount()
+{
+    if (Relation::POS_UNINIT != this->relation.pos) {
+        this->relation.lineCount++;
     }
 }

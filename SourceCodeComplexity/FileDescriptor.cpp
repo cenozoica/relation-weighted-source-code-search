@@ -71,7 +71,7 @@ void FileDescriptor::Analyze()
                 std::string line;
                 if (std::getline(fileHandle, line)) {
                     if (!line.empty()) {
-                        IncrementLineCount();
+                        this->fileHighLevelRep->IncrementLineCount();
                     }
                     for (const auto& c : line) {
                         parser->UpdateState(c);

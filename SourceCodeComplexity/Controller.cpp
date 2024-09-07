@@ -61,7 +61,7 @@ void Controller::AnalyzeParallel(SimpleDebugOutput& simpleDebugOutput)
             t.join();
         });
     const auto t_end = std::chrono::high_resolution_clock::now();
-    std::cout << "Run time:\t" << std::setprecision(6) << std::chrono::duration<double, std::milli>(t_end - t_start) << std::endl;
+    std::cout << "Run time file parse:\t" << std::setprecision(6) << std::chrono::duration<double, std::milli>(t_end - t_start) << std::endl;
 }
 
 void Controller::CreateUniqueTokenList()
@@ -74,6 +74,9 @@ void Controller::CreateUniqueTokenList()
         fd.ToGlobalTokenSet(*tokenSetTemp);
     }
     
+    std::unique_ptr<std::vector<std::string>> tokenListTemp = std::make_unique<std::vector<std::string>>(tokenSetTemp->begin(), tokenSetTemp->end());
+    tokenSetTemp->clear();
+
     for (auto& fd : this->fileDescriptorList) {
         fd.ResetAnalyzed();
     }
@@ -84,7 +87,6 @@ void Controller::CreateUniqueTokenList()
     std::mutex fileAnalyzedMutex;
 
     // update indexes
-    std::unique_ptr<std::vector<std::string>> tokenListTemp = std::make_unique<std::vector<std::string>>(tokenSetTemp->begin(), tokenSetTemp->end());
     for (int processorIndex = 0; processorIndex < processorCount; ++processorIndex) {
         workers.push_back(std::thread([this, &fileAnalyzedMutex, &tokenListTemp]() {
             for (auto& fd : this->fileDescriptorList) {
@@ -108,7 +110,7 @@ void Controller::CreateUniqueTokenList()
     this->tokenList = std::move(tokenListTemp);
 
     const auto t_end = std::chrono::high_resolution_clock::now();
-    std::cout << "Run time:\t" << std::setprecision(6) << std::chrono::duration<double, std::milli>(t_end - t_start) << std::endl;
+    std::cout << "Run time create unique token list:\t" << std::setprecision(6) << std::chrono::duration<double, std::milli>(t_end - t_start) << std::endl;
 }
 
 void Controller::ToFileComplexity(const std::string filename) const
@@ -136,11 +138,12 @@ void Controller::ToFileTokenSet(const std::string filename) const
     file.close();
 }
 
-void Controller::Search(const std::string& q)
+void Controller::CreateSearchTokenList(const std::string& q)
 {
     const auto t_start = std::chrono::high_resolution_clock::now();
 
     this->searchToken.clear();
+    
     // search exact match
     const auto it = std::lower_bound(this->tokenList->begin(), this->tokenList->end(), q); // binary search
     if (it != this->tokenList->end()) {
@@ -160,7 +163,24 @@ void Controller::Search(const std::string& q)
         }
     }
     
-    // TODO Search also q[0] capitalized but weight = 0.5
+    // search also q[0] capitalized but weight = 0.5
+    if (std::islower(q[0])) {
+        std::string r = q;
+        r[0] = std::toupper(r[0]);
+        // search exact match
+        const auto it = std::lower_bound(this->tokenList->begin(), this->tokenList->end(), r); // binary search
+        if (it != this->tokenList->end()) {
+            this->searchToken.push_back({static_cast<unsigned int>(std::distance(this->tokenList->begin(), it)), 0.5f});
+        }
+    }
+    
+    const auto t_end = std::chrono::high_resolution_clock::now();
+    std::cout << "Run time search keyword index:\t" << std::setprecision(6) << std::chrono::duration<double, std::milli>(t_end - t_start) << std::endl;
+}
+
+void Controller::Search(const std::string& q)
+{
+    this->CreateSearchTokenList(q);
     
     for (auto& fd : this->fileDescriptorList) {
         fd.ResetAnalyzed();
@@ -168,6 +188,8 @@ void Controller::Search(const std::string& q)
     this->searchResultTop.clear();
     this->searchResultTop.reserve(SEARCH_RESULT_TOP_SIZE_MAX);
     
+    const auto t_start = std::chrono::high_resolution_clock::now();
+
     const auto processorCount = std::thread::hardware_concurrency();
     //std::cout << "Processor count: " << processorCount << std::endl;
     std::vector<std::thread> workers;
@@ -216,7 +238,7 @@ void Controller::Search(const std::string& q)
         });
         
     const auto t_end = std::chrono::high_resolution_clock::now();
-    std::cout << "Run time:\t" << std::setprecision(6) << std::chrono::duration<double, std::milli>(t_end - t_start) << std::endl;
+    std::cout << "Run time file search:\t" << std::setprecision(6) << std::chrono::duration<double, std::milli>(t_end - t_start) << std::endl;
 }
 
 void Controller::ToFileSearchResult(const std::string filename) const
@@ -265,9 +287,8 @@ void Controller::ToFileSearchResult(const std::string filename) const
                                 f << std::endl;
                             }
                             
-                            // write 3 lines
-                            static const size_t LINE_COUNT = 3;
-                            for (size_t lineIndex = 0; lineIndex < LINE_COUNT; ++lineIndex) {
+                            // write relation lines
+                            for (size_t lineIndex = 0; lineIndex < it->lineCount; ++lineIndex) {
                                 std::string line;
                                 if (std::getline(g, line)) {
                                     f << line << std::endl;

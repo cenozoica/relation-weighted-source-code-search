@@ -28,6 +28,7 @@ private:
     std::vector<SearchToken> searchToken;
     std::vector<int> searchResultTop; // max 10 energy files as indexes
     static const size_t SEARCH_RESULT_TOP_SIZE_MAX = 10;
+    void CreateSearchTokenList(const std::string& q);
 public:
     Controller(const std::vector<std::filesystem::path>& filelist);
     void Analyze(); // no concurrency

@@ -9,6 +9,12 @@
 
 #include "Relation.hpp"
 
+void Relation::Reset()
+{
+    this->pos = Relation::POS_UNINIT;
+    this->lineCount = 0;
+}
+
 void Relation::Index(const std::vector<std::string>& tokenListFile)
 {
     const std::vector<std::string>& tl = std::get<std::vector<std::string>>(this->tokenList);

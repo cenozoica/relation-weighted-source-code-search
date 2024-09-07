@@ -30,7 +30,6 @@ public:
     bool IsAnalyzed() const { return this->analyzed; }
     void SetAnalyzed() { this->analyzed = true; }
     void ResetAnalyzed() { this->analyzed = false; }
-    void IncrementLineCount() { this->fileHighLevelRep->IncrementLineCount(); }
     void ToGlobalTokenSet(std::set<std::string>& tokenSet);
     void Index(const std::vector<std::string>& tokenListGlobal);
 

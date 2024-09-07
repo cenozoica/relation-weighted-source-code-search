@@ -32,6 +32,7 @@ struct Relation {
     //Relation(const Relation& other) {}
     //~Relation() {}
     
+    void Reset();
     void Index(const std::vector<std::string>& tokenListFile);
     void Index(const std::vector<std::string>& tokenListGlobal, const std::vector<std::string>& tokenListFile);
     bool Has(const unsigned int q) const; // TODO has it how many times? this matters for the weight
