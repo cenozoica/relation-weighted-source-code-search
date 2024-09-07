@@ -9,13 +9,12 @@
 
 #include "Parser.hpp"
 
-static const size_t TOKEN_RESERVE_SIZE = 5;
 static const std::string NUMBER_LITERAL = "__NUMBER_LITERAL";
 
 ParserBase::ParserBase(FileHighLevelRepresentation& fileHighLevelRep)
 : state(State::CODE), substateIndex(0), stateConsistency(true), fileHighLevelRep(fileHighLevelRep)
 {
-    this->token.reserve(TOKEN_RESERVE_SIZE);
+    this->token.reserve(TOKEN_RESERVE_MIN);
 }
 
 void ParserBase::Transition(const State state, const int substateIndex)
@@ -83,7 +82,6 @@ void ParserBase::UpdateState(const char input)
                         case '\n':
                         case '\0':
                             this->Transition(State::CODE);
-                            this->fileHighLevelRep.IncrementLineCount();
                             break;
                             
                         default:
@@ -265,7 +263,6 @@ void ParserBase::CloseToken()
         std::vector<std::string>& tl = std::get<std::vector<std::string>>(this->relation.tokenList);
         tl.push_back(this->token);
         this->token.clear();
-        this->token.reserve(std::max(TOKEN_RESERVE_SIZE, static_cast<size_t>(1.5f * tokenLen)));
     }
 }
 

@@ -67,8 +67,12 @@ void FileDescriptor::Analyze()
         if (fileHandle.is_open()) {
             while (true) {
                 parser->SetLineStartPos(fileHandle.tellg()); // stream position to locate later the relation
+                
                 std::string line;
                 if (std::getline(fileHandle, line)) {
+                    if (!line.empty()) {
+                        IncrementLineCount();
+                    }
                     for (const auto& c : line) {
                         parser->UpdateState(c);
                         

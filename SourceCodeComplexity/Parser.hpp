@@ -38,7 +38,7 @@ protected:
     void CloseToken();
     void CloseRelation();
 public:
-    static const size_t TOKEN_RELATION_SIZE_MAX = 10;
+    static const size_t TOKEN_RESERVE_MIN = 8;
     ParserBase(FileHighLevelRepresentation& fileHighLevelRep);
     virtual ~ParserBase() {}
     State GetState() const { return this->state; }

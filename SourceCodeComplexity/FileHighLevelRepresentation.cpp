@@ -36,11 +36,12 @@ void FileHighLevelRepresentation::PostAnalyze()
 
         // from set to vector
         std::unique_ptr<std::vector<std::string>> tokenListTemp = std::make_unique<std::vector<std::string>>(tokenSetTemp->begin(), tokenSetTemp->end());
+        tokenSetTemp->clear();
+        
         // transfer ownership to const
         this->tokenList = std::move(tokenListTemp);
         
-        // compress relations
-        this->relationList = std::make_unique<std::vector<Relation>>();
+        // index relations
         for (auto& relation : *this->relationList) {
             relation.Index(*this->tokenList);
         }
