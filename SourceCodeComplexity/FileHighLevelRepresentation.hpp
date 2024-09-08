@@ -48,7 +48,8 @@ public:
     void IncrementCommentEnergy() { this->commentEnergy++; }
     void IncrementLineCount() { this->lineCount++; }
 
-    void Search(const unsigned int q, std::vector<Relation>& searchResult);
+    void Search(const unsigned int q, std::vector<unsigned int>& searchResult);
+    const Relation& GetRelation(const unsigned int i) const { return (*this->relationList)[i]; }
     
     static void Test();
 };

@@ -21,6 +21,7 @@
 
 struct Relation {
     static const unsigned int POS_UNINIT = 1048570U;
+    static const unsigned int LINE_COUNT_MAX = 15U;
     unsigned int pos: 20; // stream position (byte count <= 1MB)
     unsigned int lineCount: 4; // usually 1
     // 8 unused bits, not sure how variant below aligns

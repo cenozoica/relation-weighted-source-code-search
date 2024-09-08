@@ -5,6 +5,7 @@
 //  Created by Vadim Baitoiu on 19.08.24.
 //
 
+#include <iostream>
 #include <string>
 
 #include "Parser.hpp"
@@ -281,6 +282,19 @@ void ParserBase::CloseRelation()
 void ParserBase::IncrementLineCount()
 {
     if (Relation::POS_UNINIT != this->relation.pos) {
-        this->relation.lineCount++;
+        if (this->relation.lineCount < Relation::LINE_COUNT_MAX) {
+            this->relation.lineCount++;
+        }
+    }
+}
+
+void ParserBase::SetLineStartPos(const long long pos)
+{
+    if (pos < Relation::POS_UNINIT) {
+        this->lineStartPos = pos;
+    }
+    else {
+        this->lineStartPos = Relation::POS_UNINIT - 1;
+        std::cerr << "Bad pos:\t" << pos << std::endl;
     }
 }

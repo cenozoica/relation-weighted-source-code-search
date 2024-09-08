@@ -46,7 +46,7 @@ public:
     bool GetStateConsistency() const { return this->stateConsistency; }
     bool Check() const { return true == stateConsistency && 0 == this->fhlrDepth; }
     virtual void UpdateState(const char input);
-    void SetLineStartPos(const long long pos) { this->lineStartPos = pos; }
+    void SetLineStartPos(const long long pos);
     void IncrementLineCount();
 };
 

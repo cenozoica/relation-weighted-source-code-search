@@ -18,16 +18,18 @@ private:
     const std::filesystem::path& path;
     bool analyzed;
     std::unique_ptr<FileHighLevelRepresentation> fileHighLevelRep;
-    std::vector<Relation> searchResult;
+    std::vector<unsigned int> searchResult;
     float searchResultEnergy;
 
     std::unique_ptr<ParserBase> CreateParser();
     bool IsFileExtensionAllowed() const; // not used now
 public:
+    static const size_t FILE_SIZE_MAX = 1U << 17;
     FileDescriptor(const std::filesystem::path& path);
     const std::filesystem::path& GetPath() const { return this->path; }
     void Analyze();
     bool IsAnalyzed() const { return this->analyzed; }
+    bool HasHighLevelRepresentation() const { return nullptr != this->fileHighLevelRep; }
     void SetAnalyzed() { this->analyzed = true; }
     void ResetAnalyzed() { this->analyzed = false; }
     void ToGlobalTokenSet(std::set<std::string>& tokenSet);
@@ -39,7 +41,8 @@ public:
     // search methods
     void ResetSearchResult() { this->searchResult.clear(); this->searchResultEnergy = 0.0f; }
     void Search(const unsigned int q, const float weight = 1.0f);
-    const std::vector<Relation>& GetSearchResult() const { return this->searchResult; }
+    const std::vector<unsigned int>& GetSearchResult() const { return this->searchResult; }
+    const Relation& GetRelation(const unsigned int i) const { return this->fileHighLevelRep->GetRelation(i); }
     float GetSearchResultEnergy() const { return this->searchResultEnergy; }
 };
 

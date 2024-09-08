@@ -37,19 +37,28 @@ bool FileDescriptor::IsFileExtensionAllowed() const
 std::unique_ptr<ParserBase> FileDescriptor::CreateParser()
 {
     std::unique_ptr<ParserBase> result = nullptr;
-    // not using RTTI or a map of file extension string -> parser classes/objects
-    const std::string& s = this->path.extension();
-    if (".h" == s || ".hpp" == s || ".c" == s || ".cpp" == s) {
-        this->fileHighLevelRep = std::make_unique<FileHighLevelRepresentation>();
-        result = std::make_unique<ParserCC>(*this->fileHighLevelRep);
-    }
-    else if (".java" == s) {
-        this->fileHighLevelRep = std::make_unique<FileHighLevelRepresentation>();
-        result = std::make_unique<ParserJava>(*this->fileHighLevelRep);
+    
+    // check size
+    if (std::filesystem::file_size(this->path) <= FILE_SIZE_MAX) {
+        // check extension
+        // not using RTTI or a map of file extension string -> parser classes/objects
+        const std::string& s = this->path.extension();
+        if (".h" == s || ".hpp" == s || ".c" == s || ".cpp" == s) {
+            this->fileHighLevelRep = std::make_unique<FileHighLevelRepresentation>();
+            result = std::make_unique<ParserCC>(*this->fileHighLevelRep);
+        }
+        else if (".java" == s) {
+            this->fileHighLevelRep = std::make_unique<FileHighLevelRepresentation>();
+            result = std::make_unique<ParserJava>(*this->fileHighLevelRep);
+        }
+        else {
+            // ignore extension
+        }
     }
     else {
-        // ignored file
+        // ignore size, could be precomputed tables
     }
+    
     return result;
 }
 
@@ -112,7 +121,7 @@ void FileDescriptor::Index(const std::vector<std::string>& tokenListGlobal)
 
 std::tuple<int, int, int> FileDescriptor::GetComplexity() const
 {
-    if (nullptr != this-> fileHighLevelRep) {
+    if (nullptr != this->fileHighLevelRep) {
         return {this->fileHighLevelRep->GetLineCount(), this->fileHighLevelRep->GetCommentEnergy(), this->fileHighLevelRep->GetRelationEnergy()};
     }
     else {
@@ -126,8 +135,9 @@ void FileDescriptor::Search(const unsigned int q, const float weight)
         this->fileHighLevelRep->Search(q, this->searchResult);
         
         // calculate search result energy
-        for (const auto& relation : this->searchResult) {
-            const std::vector<unsigned int>& tl = std::get<std::vector<unsigned int>>(relation.tokenList);
+        for (const auto i : this->searchResult) {
+            const auto& rel = this->GetRelation(i);
+            const std::vector<unsigned int>& tl = std::get<std::vector<unsigned int>>(rel.tokenList);
             this->searchResultEnergy += weight * tl.size();
         }
     }

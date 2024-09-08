@@ -145,16 +145,18 @@ void Controller::CreateSearchTokenList(const std::string& q)
     this->searchToken.clear();
     
     // search exact match
-    const auto it = std::lower_bound(this->tokenList->begin(), this->tokenList->end(), q); // binary search
+    /*const auto it = std::lower_bound(this->tokenList->begin(), this->tokenList->end(), q); // binary search
     if (it != this->tokenList->end()) {
-        this->searchToken.push_back({static_cast<unsigned int>(std::distance(this->tokenList->begin(), it)), 1.0f});
-    }
+    }*/
     
     // search as substring
-    // TODO parallel
     for (unsigned int i = 0; i < this->tokenList->size(); ++i) {
         const auto& str = (*this->tokenList)[i];
         if (!str.empty()) {
+            if (str == q) {
+                this->searchToken.push_back({i, 1.0f});
+            }
+            
             if (str.find(q) != std::string::npos) {
                 // weight is substring length ratio
                 const float weight = static_cast<float>(q.size()) / static_cast<float>(str.size());
@@ -167,10 +169,27 @@ void Controller::CreateSearchTokenList(const std::string& q)
     if (std::islower(q[0])) {
         std::string r = q;
         r[0] = std::toupper(r[0]);
+        
         // search exact match
-        const auto it = std::lower_bound(this->tokenList->begin(), this->tokenList->end(), r); // binary search
+        /*const auto it = std::lower_bound(this->tokenList->begin(), this->tokenList->end(), r); // binary search
         if (it != this->tokenList->end()) {
             this->searchToken.push_back({static_cast<unsigned int>(std::distance(this->tokenList->begin(), it)), 0.5f});
+        }*/
+        
+        // search as substring
+        for (unsigned int i = 0; i < this->tokenList->size(); ++i) {
+            const auto& str = (*this->tokenList)[i];
+            if (!str.empty()) {
+                if (str == r) {
+                    this->searchToken.push_back({i, 0.5f});
+                }
+
+                if (str.find(r) != std::string::npos) {
+                    // weight is substring length ratio
+                    const float weight = 0.5f * static_cast<float>(r.size()) / static_cast<float>(str.size());
+                    this->searchToken.push_back({i, weight});
+                }
+            }
         }
     }
     
@@ -203,6 +222,7 @@ void Controller::Search(const std::string& q)
                 fileAnalyzedMutex.lock();
                 if (!fd.IsAnalyzed()) {
                     fd.SetAnalyzed(); // for other threads this file is as analyzed
+                    ///std::cout << "File search progress %:\t" << 100.0f * static_cast<float>(i) / static_cast<float>(this->fileDescriptorList.size()) << std::endl;
                     fileAnalyzedMutex.unlock();
                     fd.ResetSearchResult();
                     for (auto& q : this->searchToken) {
@@ -271,7 +291,8 @@ void Controller::ToFileSearchResult(const std::string filename) const
                 if (g.is_open()) {
                     const auto& relationList = fd.GetSearchResult();
                     for (auto it = relationList.begin(); it != relationList.end(); ++it) {
-                        g.seekg(it->pos); // go to relation code
+                        const auto& rel = fd.GetRelation(*it);
+                        g.seekg(rel.pos); // go to relation code
                         
                         bool aggregateCode = false; // relation lines can intersect
                         
@@ -288,7 +309,7 @@ void Controller::ToFileSearchResult(const std::string filename) const
                             }
                             
                             // write relation lines
-                            for (size_t lineIndex = 0; lineIndex < it->lineCount; ++lineIndex) {
+                            for (size_t lineIndex = 0; lineIndex < rel.lineCount; ++lineIndex) {
                                 std::string line;
                                 if (std::getline(g, line)) {
                                     f << line << std::endl;

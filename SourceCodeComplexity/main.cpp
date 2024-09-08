@@ -17,10 +17,14 @@ int main(int argc, const char * argv[]) {
     std::vector<std::filesystem::path> filelist;
 
     // iterate source code directory
-    std::string myPath = "/Users/vadimbaitoiu/Downloads/elasticsearch-main";
+    //std::string myPath = "/Users/vadimbaitoiu/Downloads/elasticsearch-main";
+    std::string myPath = "/Users/vadimbaitoiu/Downloads/dogecoin-master";
     using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
     for (const auto& dirEntry : recursive_directory_iterator(myPath)) {
-        filelist.push_back(dirEntry.path());
+        const auto& p = dirEntry.path();
+        if (!std::filesystem::is_directory(p)) {
+            filelist.push_back(p);
+        }
     }
 
     // debug
@@ -32,6 +36,7 @@ int main(int argc, const char * argv[]) {
     controller.AnalyzeParallel(simpleDebugOutput);
     controller.CreateUniqueTokenList();
     controller.Search("thread");
+    //controller.Search("key");
 
     controller.ToFileComplexity("/Users/vadimbaitoiu/Downloads/complexitydata.csv");
     //controller.ToFileTokenSet("/Users/vadimbaitoiu/Downloads/tokenset.txt");

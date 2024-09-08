@@ -50,7 +50,9 @@ void FileHighLevelRepresentation::PostAnalyze()
 
 void FileHighLevelRepresentation::ToGlobalTokenSet(std::set<std::string>& tokenSetGlobal)
 {
-    tokenSetGlobal.insert(this->tokenList->begin(), this->tokenList->end());
+    if (nullptr != this->tokenList) {
+        tokenSetGlobal.insert(this->tokenList->begin(), this->tokenList->end());
+    }
 }
 
 void FileHighLevelRepresentation::Index(const std::vector<std::string>& tokenListGlobal)
@@ -74,19 +76,21 @@ size_t FileHighLevelRepresentation::GetRelationEnergy() const
     
     if (nullptr != this->relationList) {
         for (const auto& relation : *this->relationList) {
-            result += std::get<std::vector<unsigned int>>(relation.tokenList).size();
+            if (std::holds_alternative<std::vector<unsigned int>>(relation.tokenList)) {
+                result += std::get<std::vector<unsigned int>>(relation.tokenList).size();
+            }
         }
     }
     
     return result;
 }
 
-void FileHighLevelRepresentation::Search(const unsigned int q, std::vector<Relation>& searchResult)
+void FileHighLevelRepresentation::Search(const unsigned int q, std::vector<unsigned int>& searchResult)
 {
     if (nullptr != this->relationList) {
-        for (const auto& relation : *this->relationList) {
-            if (relation.Has(q)) {
-                searchResult.push_back(relation);
+        for (unsigned int i = 0; i < this->relationList->size(); ++i) {
+            if ((*this->relationList)[i].Has(q)) {
+                searchResult.push_back(i);
             }
         }
     }
