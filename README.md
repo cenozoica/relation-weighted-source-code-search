@@ -15,6 +15,7 @@ Comments are ignored.
 Close projects are:
 - Elasticsearch
 - BERT (language model) by Google
+- MUSE Envisions Mining “Big Code” to Improve Software Reliability and Construction DARPA 2014
 
 Search result energy example:
 ![Search result energy example](https://github.com/cenozoica/relation-weighted-source-code-search/blob/main/search_result_energy_example.png?raw=true)
